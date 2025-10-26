@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elysium Reveal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            font-weight: 300;
+        }
+
+        /* Subtle cosmic haze background animation */
+        #background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(255, 179, 71, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(0, 255, 217, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(255, 179, 71, 0.02) 0%, transparent 50%);
+            animation: cosmicHaze 20s ease-in-out infinite alternate;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes cosmicHaze {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        #reveal-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #initiate-btn {
+            width: clamp(220px, 28vw, 350px);
+            height: clamp(220px, 28vw, 350px);
+            border-radius: 50%;
+            background: rgba(255, 179, 71, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+            color: #ffb347;
+            font-size: clamp(1.1rem, 3.5vw, 1.7rem);
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 30px rgba(255, 179, 71, 0.1),
+                inset 0 0 30px rgba(255, 179, 71, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #initiate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 179, 71, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        #initiate-btn:hover::before {
+            left: 100%;
+        }
+
+        #initiate-btn:hover {
+            box-shadow: 
+                0 0 60px rgba(255, 179, 71, 0.3),
+                inset 0 0 40px rgba(255, 179, 71, 0.05);
+            transform: scale(1.08);
+            background: rgba(255, 179, 71, 0.12);
+        }
+
+        .hidden {
+            display: none !important;
+            opacity: 0;
+        }
+
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(140px, 40vw, 600px);
+            font-weight: 700;
+            color: #ffb347;
+            text-shadow: 
+                0 0 60px #ffb347, 
+                0 0 120px #00ffd9,
+                0 0 200px rgba(0, 255, 217, 0.3);
+            z-index: 5;
+            filter: drop-shadow(0 0 30px rgba(0, 255, 217, 0.4));
+            letter-spacing: -2px;
+        }
+
+        #logo-reveal, #final-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: clamp(350px, 50vw, 700px);
+            height: auto;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        #final-logo {
+            width: clamp(400px, 60vw, 850px);
+        }
+
+        #logo-img, #final-logo-img {
+            width: 100%;
+            height: auto;
+            filter: 
+                drop-shadow(0 0 40px rgba(255, 179, 71, 0.6)) 
+                drop-shadow(0 0 80px rgba(0, 255, 217, 0.3))
+                drop-shadow(0 0 120px rgba(255, 179, 71, 0.2));
+            transition: filter 0.5s ease;
+        }
+
+        /* Spotlight for logos */
+        .logo-spotlight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(255, 179, 71, 0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            opacity: 0;
+        }
+
+        #melanie-highlight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            color: #ffb347;
+            text-align: center;
+            text-shadow: 
+                0 0 50px #ffb347, 
+                0 0 100px #00ffd9,
+                0 0 150px rgba(0, 255, 217, 0.4);
+            opacity: 0;
+            z-index: 5;
+            font-weight: 400;
+            letter-spacing: 4px;
+            line-height: 1.2;
+        }
+
+        /* Halo for Melanie text */
+        #melanie-highlight::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(0, 255, 217, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            opacity: 0;
+            animation: haloPulse 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes haloPulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        #explanations-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95%;
+            max-width: 1200px;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .explanation-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 179, 71, 0.1);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 0 30px rgba(255, 179, 71, 0.02);
+        }
+
+        .explanation-section.active {
+            display: flex;
+        }
+
+        .explanation-section h2 {
+            color: #ffb347;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-shadow: 0 0 40px #ffb347;
+            letter-spacing: 2px;
+        }
+
+        .explanation-section p {
+            color: #ffffff;
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            line-height: 1.8;
+            margin-bottom: 50px;
+            max-width: 800px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            font-weight: 300;
+        }
+
+        .explanation-section img {
+            width: clamp(400px, 55vw, 700px);
+            height: auto;
+            filter: 
+                drop-shadow(0 0 30px rgba(255, 179, 71, 0.5)) 
+                drop-shadow(0 0 60px rgba(0, 255, 217, 0.2));
+            max-height: 60vh;
+            object-fit: contain;
+            border-radius: 15px;
+        }
+
+        #thank-you {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(4rem, 10vw, 6rem);
+            color: #ffb347;
+            text-align: center;
+            text-shadow: 
+                0 0 60px #ffb347,
+                0 0 120px rgba(0, 255, 217, 0.5);
+            opacity: 0;
+            z-index: 5;
+            font-weight: 400;
+            letter-spacing: 5px;
+            line-height: 1.1;
+        }
+
+        /* Responsive */
+        @media (min-width: 769px) {
+            .explanation-section {
+                flex-direction: row;
+                justify-content: center;
+                gap: 80px;
+                align-items: flex-start;
+                padding: 80px;
+            }
+
+            .explanation-section img {
+                order: 2;
+                flex-shrink: 0;
+                max-width: 50%;
+            }
+
+            .explanation-section .text-content {
+                flex: 1;
+                max-width: 50%;
+                padding-right: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .explanation-section {
+                flex-direction: column;
+                padding: 40px 20px;
+                border-radius: 15px;
+            }
+
+            #explanations-container {
+                padding: 20px;
+            }
+
+            .explanation-section img {
+                width: 90vw;
+                max-width: 500px;
+            }
+
+            .explanation-section h2 {
+                font-size: clamp(2rem, 8vw, 3rem);
+            }
+
+            .explanation-section p {
+                font-size: clamp(1rem, 4vw, 1.2rem);
+            }
+        }
+
+        /* Particle canvas overlay */
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="background-overlay"></div>
+    <div id="reveal-container">
+        <canvas id="particles-canvas"></canvas>
+        <button id="initiate-btn">Initiate Elysium</button>
+        <div id="countdown" class="hidden">
+            <div class="number">3</div>
+        </div>
+        <div id="logo-reveal" class="hidden">
+            <div class="logo-spotlight"></div>
+            <img id="logo-img" src="logo.png" alt="Elysium Logo">
+        </div>
+        <div id="melanie-highlight" class="hidden">Melanie Perkins – CEO of Canva</div>
+        <div id="explanations-container" class="hidden">
+            <div class="explanation-section active" id="exp1">
+                <div class="text-content">
+                    <h2>Explanation 1</h2>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                </div>
+                <img src="exp1.png" alt="Explanation 1 Image">
+            </div>
+            <div class="explanation-section" id="exp2">
+                <div class="text-content">
+                    <h2>Explanation 2</h2>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+                <img src="exp2.png" alt="Explanation 2 Image">
+            </div>
+            <div class="explanation-section" id="exp3">
+                <div class="text-content">
+                    <h2>Explanation 3</h2>
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                </div>
+                <img src="exp3.png" alt="Explanation 3 Image">
+            </div>
+            <div class="explanation-section" id="exp4">
+                <div class="text-content">
+                    <h2>Explanation 4</h2>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.</p>
+                </div>
+                <img src="exp4.png" alt="Explanation 4 Image">
+            </div>
+        </div>
+        <div id="thank-you" class="hidden">Thank you for visiting!</div>
+        <div id="final-logo" class="hidden">
+            <div class="logo-spotlight"></div>
+            <img id="final-logo-img" src="logo.png" alt="Elysium Logo">
+        </div>
+    </div>
+
+    <script>
+        // GSAP Animations (unchanged from previous version for functionality)
+        const btn = document.getElementById('initiate-btn');
+        const countdown = document.getElementById('countdown');
+        const logoReveal = document.getElementById('logo-reveal');
+        const melanieHighlight = document.getElementById('melanie-highlight');
+        const explanationsContainer = document.getElementById('explanations-container');
+        const thankYou = document.getElementById('thank-you');
+        const finalLogo = document.getElementById('final-logo');
+        const revealContainer = document.getElementById('reveal-container');
+        const particlesCanvas = document.getElementById('particles-canvas');
+        const ctx = particlesCanvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            particlesCanvas.width = window.innerWidth;
+            particlesCanvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Enhanced particle system with trails and glow (unchanged)
+        let particles = [];
+        class Particle {
+            constructor(x, y, vx, vy, color, life, size = 2) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx + (Math.random() - 0.5) * 2;
+                this.vy = vy + (Math.random() - 0.5) * 2;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.trail = [];
+            }
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 10) this.trail.shift();
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.01;
+                this.vx *= 0.99;
+                this.life--;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life / this.maxLife;
+                for (let i = 0; i < this.trail.length; i++) {
+                    ctx.globalAlpha = (i / this.trail.length) * (this.life / this.maxLife);
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.trail[i].x, this.trail[i].y, this.size * (i / this.trail.length + 0.5), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+        }
+
+        function createParticles(x, y, count, color = '#ffb347', burst = false) {
+            for (let i = 0; i < count; i++) {
+                const angle = burst ? (Math.PI * 2 * i) / count + Math.random() * 0.5 : Math.PI * 2 * Math.random();
+                const speed = burst ? Math.random() * 4 + 2 : Math.random() * 1 + 0.5;
+                const size = Math.random() * 3 + 1;
+                particles.push(new Particle(
+                    x, y,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed - (burst ? 1 : 0),
+                    color,
+                    120 + Math.random() * 60,
+                    size
+                ));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+            particles = particles.filter(p => {
+                p.update();
+                p.draw();
+                return p.life > 0;
+            });
+            if (Math.random() < 0.05) {
+                createParticles(
+                    Math.random() * particlesCanvas.width,
+                    Math.random() * particlesCanvas.height,
+                    1,
+                    Math.random() > 0.85 ? '#00ffd9' : '#ffb347'
+                );
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Click handler for Phase 0 (unchanged)
+        btn.addEventListener('click', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = rect.left + rect.width / 2 + window.scrollX;
+            const y = rect.top + rect.height / 2 + window.scrollY;
+
+            createParticles(x, y, 50, '#ffb347', true);
+            createParticles(x, y, 15, '#00ffd9', true);
+
+            gsap.to(btn, {
+                scale: 1.15,
+                boxShadow: '0 0 60px #ffb347',
+                duration: 0.5,
+                ease: 'elastic.out(1, 0.3)'
+            });
+
+            btn.style.pointerEvents = 'none';
+            setTimeout(() => {
+                gsap.to(btn, { opacity: 0, scale: 0.8, duration: 0.4, ease: 'power2.in' });
+                gsap.to('#particles-canvas', { opacity: 0.8, duration: 0.8 });
+                setTimeout(startPhase1, 600);
+            }, 500);
+        });
+
+        // Phase 1: Countdown (unchanged)
+        function startPhase1() {
+            countdown.classList.remove('hidden');
+            gsap.fromTo(countdown, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.8, ease: 'elastic.out(1, 0.5)' });
+
+            const numbers = [3, 2, 1];
+            let index = 0;
+            const numEl = document.querySelector('.number');
+
+            const countdownInterval = setInterval(() => {
+                const rect = numEl.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2 + window.scrollX;
+                const cy = rect.top + rect.height / 2 + window.scrollY;
+                createParticles(cx, cy, 40, '#ffb347', true);
+                createParticles(cx, cy, 12, '#00ffd9', true);
+
+                gsap.to(numEl, {
+                    scale: 1.2,
+                    textShadow: '0 0 120px #ffb347, 0 0 200px #00ffd9',
+                    duration: 0.7,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: 'power2.inOut'
+                });
+
+                numEl.textContent = numbers[index];
+                index++;
+
+                if (index >= numbers.length) {
+                    clearInterval(countdownInterval);
+                    gsap.to(countdown, { opacity: 0, scale: 0.8, duration: 0.6, ease: 'power2.in' });
+                    setTimeout(startPhase2, 800);
+                }
+            }, 1200);
+        }
+
+        // Phase 2: Logo Reveal (enhanced with spotlight)
+        function startPhase2() {
+            logoReveal.classList.remove('hidden');
+            gsap.fromTo(logoReveal, { opacity: 0, scale: 0.3 }, {
+                opacity: 1,
+                scale: 1,
+                duration: 2,
+                ease: 'elastic.out(1, 0.4)'
+            });
+            gsap.to('.logo-spotlight', { opacity: 1, duration: 2, ease: 'power2.out' });
+
+            gsap.to('#logo-img', {
+                filter: 'drop-shadow(0 0 40px #ffb347) drop-shadow(0 0 80px #00ffd9)',
+                scale: 1.05,
+                duration: 3,
+                yoyo: true,
+                repeat: -1,
+                ease: 'power2.inOut'
+            });
+
+            const swirlInterval = setInterval(() => {
+                const logoRect = logoReveal.getBoundingClientRect();
+                const centerX = logoRect.left + logoRect.width / 2 + window.scrollX;
+                const centerY = logoRect.top + logoRect.height / 2 + window.scrollY;
+                const angle = Math.PI * 2 * Math.random();
+                const radius = Math.random() * 250 + 150;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                createParticles(x, y, 4, Math.random() > 0.6 ? '#00ffd9' : '#ffb347');
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(swirlInterval);
+            }, 5000);
+
+            setTimeout(startPhase3, 4000);
+        }
+
+        // Phase 3: Melanie Perkins Highlight (enhanced with halo)
+        function startPhase3() {
+            gsap.to(logoReveal, { opacity: 0, scale: 0.9, duration: 1.2, ease: 'power2.in' });
+            gsap.to('.logo-spotlight', { opacity: 0, duration: 1.2 });
+            setTimeout(() => {
+                logoReveal.classList.add('hidden');
+            }, 1200);
+
+            melanieHighlight.classList.remove('hidden');
+            gsap.fromTo(melanieHighlight, { opacity: 0, y: 50 }, {
+                opacity: 1,
+                y: 0,
+                duration: 1.5,
+                ease: 'power2.out'
+            });
+            gsap.to('#melanie-highlight::before', { opacity: 1, duration: 1.5 });
+
+            const melanieInterval = setInterval(() => {
+                const rect = melanieHighlight.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2 + window.scrollX;
+                const cy = rect.top + rect.height / 2 + window.scrollY;
+                createParticles(cx, cy, 6, '#00ffd9');
+                createParticles(cx, cy, 20, '#ffb347');
+            }, 200);
+
+            setTimeout(() => {
+                clearInterval(melanieInterval);
+                gsap.to(melanieHighlight, { opacity: 0, y: -50, duration: 1.2, ease: 'power2.in' });
+                gsap.to('#melanie-highlight::before', { opacity: 0, duration: 1.2 });
+                setTimeout(startPhase4, 1200);
+            }, 5000);
+        }
+
+        // Phase 4: Explanations Flow (unchanged)
+        function startPhase4() {
+            melanieHighlight.classList.add('hidden');
+            explanationsContainer.classList.remove('hidden');
+            gsap.to(explanationsContainer, { opacity: 1, duration: 1.2, ease: 'power2.out' });
+
+            const sections = document.querySelectorAll('.explanation-section');
+            let currentSection = 0;
+
+            function showSection(idx) {
+                if (idx >= sections.length) {
+                    gsap.to(explanationsContainer, { opacity: 0, duration: 1.2, ease: 'power2.in' });
+                    setTimeout(() => {
+                        explanationsContainer.classList.add('hidden');
+                    }, 1200);
+                    setTimeout(startPhase5, 1200);
+                    return;
+                }
+
+                sections.forEach((sec, i) => {
+                    if (i !== idx) sec.classList.remove('active');
+                });
+
+                const section = sections[idx];
+                section.classList.add('active');
+                gsap.fromTo(section.querySelector('.text-content'),
+                    { opacity: 0, x: -50 },
+                    { opacity: 1, x: 0, duration: 1.5, ease: 'power2.out' }
+                );
+                gsap.fromTo(section.querySelector('img'),
+                    { opacity: 0, scale: 0.8, y: 50 },
+                    { opacity: 1, scale: 1, y: 0, duration: 2, delay: 0.3, ease: 'elastic.out(1, 0.5)' }
+                );
+
+                const sectionRect = section.getBoundingClientRect();
+                const cx = sectionRect.left + sectionRect.width / 2 + window.scrollX;
+                const cy = sectionRect.top + sectionRect.height / 2 + window.scrollY;
+                const sectionInterval = setInterval(() => {
+                    if (section.classList.contains('active')) {
+                        createParticles(cx, cy, 8, Math.random() > 0.7 ? '#00ffd9' : '#ffb347');
+                    } else {
+                        clearInterval(sectionInterval);
+                    }
+                }, 300);
+
+                setTimeout(() => {
+                    gsap.to(section.querySelector('.text-content'), { opacity: 0, x: 50, duration: 1.2, ease: 'power2.in' });
+                    gsap.to(section.querySelector('img'), { opacity: 0, scale: 1.1, y: -50, duration: 1.2, ease: 'power2.in' });
+                    setTimeout(() => {
+                        showSection(idx + 1);
+                    }, 1200);
+                }, 10000);
+            }
+
+            showSection(0);
+        }
+
+        // Phase 5: Thank You (unchanged)
+        function startPhase5() {
+            thankYou.classList.remove('hidden');
+            gsap.fromTo(thankYou, { opacity: 0, scale: 0.5 }, {
+                opacity: 1,
+                scale: 1,
+                duration: 1.8,
+                ease: 'elastic.out(1, 0.6)'
+            });
+
+            setTimeout(() => {
+                gsap.to(thankYou, {
+                    opacity: 0,
+                    scale: 1.2,
+                    duration: 1.5,
+                    ease: 'power2.in'
+                });
+                setTimeout(startPhase6, 1500);
+            }, 3000);
+        }
+
+        // Phase 6: Final Logo (enhanced with spotlight)
+        function startPhase6() {
+            thankYou.classList.add('hidden');
+            finalLogo.classList.remove('hidden');
+            gsap.fromTo(finalLogo, { opacity: 0, scale: 0.2 }, {
+                opacity: 1,
+                scale: 1,
+                duration: 2.5,
+                ease: 'elastic.out(1, 0.4)'
+            });
+            gsap.to('.logo-spotlight', { opacity: 1, duration: 2.5 });
+
+            gsap.to('#final-logo-img', {
+                filter: 'drop-shadow(0 0 50px #ffb347) drop-shadow(0 0 100px #00ffd9)',
+                scale: 1.08,
+                duration: 4,
+                yoyo: true,
+                repeat: -1,
+                ease: 'power2.inOut'
+            });
+
+            const finalSwirl = setInterval(() => {
+                const finalLogoRect = finalLogo.getBoundingClientRect();
+                const centerX = finalLogoRect.left + finalLogoRect.width / 2 + window.scrollX;
+                const centerY = finalLogoRect.top + finalLogoRect.height / 2 + window.scrollY;
+                const angle = Math.PI * 2 * Math.random();
+                const radius = Math.random() * 300 + 200;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                createParticles(x, y, 5, Math.random() > 0.5 ? '#00ffd9' : '#ffb347');
+            }, 80);
+        }
+    </script>
+</body>
+</html>

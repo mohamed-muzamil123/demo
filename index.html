@@ -461,6 +461,22 @@
         }
         animateParticles();
 
+        // Typewriter function for paragraphs
+        function typeWriter(el, text, speed = 40, callback) {
+            el.innerHTML = '';
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    el.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
         // --- PHASE LOGIC (KEPT INTACT) ---
 
         // Phase 0: Initiate Button Click
@@ -624,6 +640,11 @@
                 const section = sections[idx];
                 section.classList.add('active');
                 
+                // Prepare paragraph for typing
+                const p = section.querySelector('p');
+                const fullText = p.innerHTML;
+                p.innerHTML = '';
+                
                 // Staggered cinematic entrance
                 gsap.fromTo(section.querySelector('.text-content'),
                     { opacity: 0, x: idx % 2 === 0 ? -100 : 100 }, // Directional slide for alternating layout
@@ -651,17 +672,23 @@
                     }
                 }, 400); // Slower particle flow
 
-                // Wait 8s then next (Reduced time from 10s for better flow)
+                // Start typewriter after entrance (2s delay to sync with animations)
                 setTimeout(() => {
-                    clearInterval(sectionInterval);
-                    // Cinematic exit animation
-                    gsap.to(section.querySelector('.text-content'), { opacity: 0, x: idx % 2 === 0 ? 100 : -100, duration: 1.5, ease: 'power3.in' });
-                    gsap.to(section.querySelector('img'), { opacity: 0, scale: 1.2, rotation: 5, duration: 1.5, ease: 'power3.in' });
-                    gsap.to(section, { boxShadow: '0 0 0 rgba(0,0,0,0)', duration: 1 }); // Remove glow on exit
-                    setTimeout(() => {
-                        showSection(idx + 1);
-                    }, 1500);
-                }, 8000);
+                    typeWriter(p, fullText, 40, () => {
+                        // After typing completes, wait 10 seconds
+                        setTimeout(() => {
+                            clearInterval(sectionInterval);
+                            // Cinematic exit animation
+                            gsap.to(section.querySelector('.text-content'), { opacity: 0, x: idx % 2 === 0 ? 100 : -100, duration: 1.5, ease: 'power3.in' });
+                            gsap.to(section.querySelector('img'), { opacity: 0, scale: 1.2, rotation: 5, duration: 1.5, ease: 'power3.in' });
+                            gsap.to(section, { boxShadow: '0 0 0 rgba(0,0,0,0)', duration: 1 }); // Remove glow on exit
+                            setTimeout(() => {
+                                showSection(idx + 1);
+                            }, 1500);
+                        }, 10000);
+                    });
+                }, 2000);
+
             }
 
             showSection(0);
